@@ -4,3 +4,4 @@ bin/
 include/
 pip-selfcheck.json
 pyenv.cfg
+pyvenv.cfg
