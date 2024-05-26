@@ -1,0 +1,25 @@
+services:
+
+  db:
+    image: mysql-db-test:1.0
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./docker-compose/mysql.Dockerfile
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "rut4lt3rn4"
+      MYSQL_USER: "userdba"
+      MYSQL_PASSWORD: "rut4lt3rn4"
+
+  app:
+    image: gradeprojectmanagement-webapp:1.0
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./docker-compose/app.Dockerfile
+    ports:
+      - 5000:5000
+    depends_on:
+      - "db"
