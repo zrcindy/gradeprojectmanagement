@@ -25,8 +25,8 @@ os.makedirs(app.config['UPLOAD_FOLDER_PROJECTS'], exist_ok=True)
 db_config = {
     'user': 'userdba',
     'password': 'rut4lt3rn4',
-    'host': 'localhost',
-#    'host': 'db',
+#    'host': 'localhost',
+    'host': 'db',
     'database': 'database_production',
     'raise_on_warnings': True
 }
