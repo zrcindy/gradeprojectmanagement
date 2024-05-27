@@ -1,9 +1,31 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, g
+from flask import Flask, render_template, request, flash, redirect, url_for, g, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
 import mysql.connector
 import os
+
+# Create a Flask application instance
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for flashing messages
+app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Maximum file size: 16MB
+
+# Ensure the upload folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# MySQL Database configuration
+db_config = {
+    'user': 'userdba',
+    'password': 'rut4lt3rn4',
+    'host': 'db',
+    'database': 'database_production',
+    'raise_on_warnings': True
+}
+
+def get_db_connection():
+    connection = mysql.connector.connect(**db_config)
+    return connection
 
 # Decorator to check if a user is logged in and has the correct role.
 def login_required(f):
@@ -29,31 +51,9 @@ def role_required(role):
         return decorated_function
     return decorator
 
-# Create a Flask application instance
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for flashing messages
-app.config['UPLOAD_FOLDER'] = 'uploads/'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Maximum file size: 16MB
-
-# Ensure the upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# MySQL Database configuration
-db_config = {
-    'user': 'userdba',
-    'password': 'rut4lt3rn4',
-    'host': 'db',
-    'database': 'database_production',
-    'raise_on_warnings': True
-}
-
-def get_db_connection():
-    connection = mysql.connector.connect(**db_config)
-    return connection
-
 # Define a route for the homepage
 @app.route('/')
-def hello_world():
+def home():
     # Render the HTML template
     return render_template('index.html')
 
@@ -67,7 +67,7 @@ def register():
         if not username or not password or not role:
             flash('All fields are required!', 'danger')
         else:
-            hashed_password = generate_password_hash(password, method='sha256')
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
             connection = get_db_connection()
             cursor = connection.cursor()
             try:
