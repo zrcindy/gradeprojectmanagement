@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script>
+    function toggleFields() {
+        var role = document.getElementById("role").value;
+        if (role === "Estudiante") {
+            document.getElementById("estudiante_fields").style.display = "block";
+            document.getElementById("evaluador_fields").style.display = "none";
+        } else if (role === "Evaluador") {
+            document.getElementById("estudiante_fields").style.display = "none";
+            document.getElementById("evaluador_fields").style.display = "block";
+        }
+    }
+</script>
+
 <h1 class="mt-4">Registro de Usuario</h1>
 <form method="POST" action="/registro">
     <div class="mb-3">
@@ -12,12 +25,37 @@
         <input type="password" class="form-control" id="password" name="password" required>
     </div>
     <div class="mb-3">
-        <label for="role" class="form-label">Role</label>
-        <select class="form-control" id="role" name="role" required>
+        <label for="name" class="form-label">Nombre Completo</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="mb-3">
+        <label for="dni" class="form-label">Documento Identificacion</label>
+        <input type="text" class="form-control" id="dni" name="dni" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="text" class="form-control" id="email" name="email" required>
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Rol</label>
+        <select class="form-control" id="role" name="role" onchange="toggleFields()" required>
             <option value="Estudiante">Estudiante</option>
             <option value="Evaluador">Evaluador</option>
         </select>
     </div>
+    <div id="estudiante_fields" style="display: none;">
+        <div class="mb-3">
+            <label for="programa" class="form-label">Carrera o Programa</label>
+            <input type="text" class="form-control" id="programa" name="programa">
+        </div>
+    </div>
+    <div id="evaluador_fields" style="display: none;">
+        <div class="mb-3">
+            <label for="especialidad" class="form-label">Especialidad</label>
+            <input type="text" class="form-control" id="especialidad" name="especialidad">
+        </div>
+    </div>
     <button type="submit" class="btn btn-primary">Registrar</button>
 </form>
+
 {% endblock %}
