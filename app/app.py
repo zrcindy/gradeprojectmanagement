@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import mysql.connector
 import os
@@ -30,6 +31,63 @@ def get_db_connection():
 def hello_world():
     # Render the HTML template
     return render_template('index.html')
+
+@app.route('/registro', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form['role']
+        
+        if not username or not password or not role:
+            flash('All fields are required!', 'danger')
+        else:
+            hashed_password = generate_password_hash(password, method='sha256')
+            connection = get_db_connection()
+            cursor = connection.cursor()
+            try:
+                cursor.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, %s)", 
+                               (username, hashed_password, role))
+                connection.commit()
+                flash('Registration successful! Please login.', 'success')
+                return redirect(url_for('login'))
+            except mysql.connector.Error as err:
+                flash(f'Error: {err}', 'danger')
+            finally:
+                cursor.close()
+                connection.close()
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['role'] = user[3]
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid username or password!', 'danger')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('home'))
 
 @app.route('/ingresar-propuesta', methods=['GET', 'POST'])
 def ingresar_propuesta():
