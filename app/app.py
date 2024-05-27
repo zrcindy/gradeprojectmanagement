@@ -38,7 +38,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'username' not in session:
-            flash('Por favor haga log in para acceder esta página.', 'danger')
+            flash('Por favor inicie sesión para acceder a esta página.', 'danger')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -48,10 +48,10 @@ def role_required(*roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'username' not in session:
-                flash('Por favor haga log in para acceder esta página.', 'danger')
+                flash('Por favor inicie sesión para acceder a esta página.', 'danger')
                 return redirect(url_for('login'))
             if session.get('role') not in roles:
-                flash('No tienes permiso para acceder esta página.', 'danger')
+                flash('No tienes permiso para acceder a esta página.', 'danger')
                 return redirect(url_for('home'))
             return f(*args, **kwargs)
         return decorated_function
@@ -78,7 +78,7 @@ def register():
             return redirect(url_for('register'))
         
         if not username or not password or not role:
-            flash('Todos los campos wson requeridos!', 'danger')
+            flash('Todos los campos son requeridos!', 'danger')
         else:
             if role == 'Estudiante':
                 programa = request.form['programa']
@@ -104,7 +104,7 @@ def register():
                                 (user_id, name, dni, email, especialidad))
                 
                 connection.commit()
-                flash('Registro exitoso! Por favor haga login.', 'success')
+                flash('¡Registro exitoso! Por favor inicie sesión.', 'success')
                 return redirect(url_for('login'))
             except mysql.connector.Error as err:
                 flash(f'Error: {err}', 'danger')
@@ -141,7 +141,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Logout exisoto.', 'success')
+    flash('Sesión finalizada.', 'success')
     return redirect(url_for('home'))
 
 @app.route('/ingresar-propuesta', methods=['GET', 'POST'])
@@ -167,7 +167,7 @@ def ingresar_propuesta():
                 cursor.execute("INSERT INTO Propuestas (user_id, file_path) VALUES (%s, %s)",
                                (session['user_id'], file_path))
                 connection.commit()
-                flash('Propuesta cargada satisfactoriamente!', 'success')
+                flash('¡Propuesta cargada satisfactoriamente!', 'success')
             except mysql.connector.Error as err:
                 flash(f'Error: {err}', 'danger')
             finally:
