@@ -131,7 +131,7 @@ def login():
             session['user_id'] = user[0]
             session['username'] = user[1]
             session['role'] = user[3]
-            flash('Login satisfactorio!', 'success')
+            flash('Ha iniciado correctamente.', 'success')
             return redirect(url_for('home'))
         else:
             flash('Nombre de usuario o contraseña inválidos!', 'danger')
