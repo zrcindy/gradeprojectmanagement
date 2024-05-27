@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mt-4">View Propuestas</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Email</th>
+            <th scope="col">Filename</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for propuesta in propuestas %}
+        <tr>
+            <th scope="row">{{ propuesta[0] }}</th>
+            <td>{{ propuesta[1] }}</td>
+            <td>{{ propuesta[2] }}</td>
+            <td>{{ propuesta[3] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,8 +1,33 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from functools import wraps
 import mysql.connector
 import os
+
+# Decorator to check if a user is logged in and has the correct role.
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            flash('Please log in to access this page.', 'danger')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'username' not in session:
+                flash('Please log in to access this page.', 'danger')
+                return redirect(url_for('login'))
+            if session.get('role') != role:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('home'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 # Create a Flask application instance
 app = Flask(__name__)
@@ -57,7 +82,7 @@ def register():
                 cursor.close()
                 connection.close()
     
-    return render_template('register.html')
+    return render_template('registro.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -90,6 +115,8 @@ def logout():
     return redirect(url_for('home'))
 
 @app.route('/ingresar-propuesta', methods=['GET', 'POST'])
+@login_required
+@role_required('Estudiante')
 def ingresar_propuesta():
     if request.method == 'POST':
         nombre = request.form['nombre']
@@ -118,19 +145,38 @@ def ingresar_propuesta():
     return render_template('ingresar-propuesta.html')
 
 @app.route('/ingresar-proyecto')
+@login_required
+@role_required('Estudiante')
 def ingresar_proyecto():
     # Render the HTML template
     return render_template('ingresar-proyecto.html')
 
 @app.route('/ingresar-informe-final')
+@login_required
+@role_required('Estudiante')
 def ingresar_informe_final():
     # Render the HTML template
     return render_template('ingresar-informe-final.html')
 
 @app.route('/consultar-proyecto')
+@login_required
+@role_required('Estudiante')
+@role_required('Evaluador')
 def consultar_proyecto():
     # Render the HTML template
     return render_template('consultar-proyecto.html')
+
+@app.route('/ver-propuestas')
+@login_required
+@role_required('Evaluador')
+def view_propuestas():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM propuestas")
+    propuestas = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return render_template('ver-propuestas.html', propuestas=propuestas)
 
 # Run the application if the script is executed directly
 if __name__ == '__main__':

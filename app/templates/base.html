@@ -16,21 +16,24 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 {% if session['username'] %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ingresar-propuesta">Ingresar Propuesta</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ingresar-proyecto">Ingresar Proyecto</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ingresar-informe-final">Ingresar Informe Final</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/consultar-proyecto">Consultar Proyecto</a>
-                    </li>
+                    {% if session['role'] == 'Estudiante' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ingresar-propuesta">Ingresar Propuesta</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ingresar-proyecto">Ingresar Proyecto</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ingresar-informe-final">Ingresar Informe Final</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/consultar-proyecto">Consultar Proyecto</a>
+                        </li>
+                    {% elif session['role'] == 'Evaluador' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ver-propuestas">Ver Propuestas</a>
+                        </li>
+                    {% endif %}
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="/login">Login</a>
