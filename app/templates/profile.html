@@ -24,12 +24,26 @@
     {% if user.role == 'Estudiante' %}
         <div class="form-group">
             <label for="programa">Programa</label>
-            <input type="text" class="form-control" id="programa" name="programa" value="{{ details.programa }}" required>
+            <select class="form-control" id="programa" name="programa" required>
+                <option value="{{ details.programa[id] }}">{{ details.programa }}</option>
+            {% for programa in programas %}
+                {% if details.programa != programa.programa %}
+                    <option value="{{ programa.id }}">{{ programa.programa }}</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         </div>
     {% elif user.role == 'Evaluador' %}
         <div class="form-group">
-            <label for="especialidad">Especialidad</label>
-            <input type="text" class="form-control" id="especialidad" name="especialidad" value="{{ details.especialidad }}" required>
+            <label for="facultad">Facultad</label>
+            <select class="form-control" id="facultad" name="facultad" required>
+                <option value="{{ details.facultad[id] }}">{{ details.facultad }}</option>
+            {% for facultad in facultades %}
+                {% if details.facultad != facultad.facultad %}
+                <option value="{{ facultad.id }}">{{ facultad.facultad }}</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         </div>
     {% endif %}
     <button type="submit" class="btn btn-primary">Actualizar Perfil</button>

@@ -10,6 +10,7 @@
             <th scope="col">Nombre</th>
             <th scope="col">Email</th>
             <th scope="col">Identificación</th>
+            <th scope="col">Programa</th>
             <th scope="col">Archivo</th>
         </tr>
     </thead>
@@ -21,6 +22,7 @@
             <td>{{ proyecto[3] }}</td>
             <td>{{ proyecto[4] }}</td>
             <td>{{ proyecto[5] }}</td>
+            <td>{{ proyecto[6] }}</td>
             <td>{{ proyecto[1].split('/')[-1] }}</td>
             <td><a href="{{ url_for('uploaded_project', filename=proyecto[1].split('/')[-1]) }}">Download</a></td>
         </tr>

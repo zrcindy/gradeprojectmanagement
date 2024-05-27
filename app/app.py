@@ -25,8 +25,8 @@ os.makedirs(app.config['UPLOAD_FOLDER_PROJECTS'], exist_ok=True)
 db_config = {
     'user': 'userdba',
     'password': 'rut4lt3rn4',
-#    'host': 'localhost',
-    'host': 'db',
+    'host': 'localhost',
+#    'host': 'db',
     'database': 'database_production',
     'raise_on_warnings': True
 }
@@ -67,54 +67,66 @@ def home():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        name = request.form['name']
-        dni = request.form['dni']
-        email = request.form['email']
-        role = request.form['role']
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    programas = []
+    facultades = []
 
-        if role not in ['Estudiante', 'Evaluador']:
-            flash('Rol seleccionado Inválido', 'danger')
-            return redirect(url_for('register'))
-        
-        if not username or not password or not role:
-            flash('Todos los campos son requeridos!', 'danger')
-        else:
-            if role == 'Estudiante':
-                programa = request.form['programa']
-                # Process student field
-            elif role == 'Evaluador':
-                especialidad = request.form['especialidad']
-                # Process Evaluador field
+    try:
+        cursor.execute("SELECT id, programa FROM Programas")
+        programas = cursor.fetchall()
+        cursor.execute("SELECT id, facultad FROM Facultades")
+        facultades = cursor.fetchall()
 
-            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-            connection = get_db_connection()
-            cursor = connection.cursor()
-            try:
+        for row in facultades:
+            print(row[1])
+
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            name = request.form['name']
+            dni = request.form['dni']
+            email = request.form['email']
+            role = request.form['role']
+
+            if role not in ['Estudiante', 'Evaluador']:
+                flash('Rol seleccionado Inválido', 'danger')
+                return redirect(url_for('register'))
+            
+            if not username or not password or not role:
+                flash('Todos los campos son requeridos!', 'danger')
+            else:
+                if role == 'Estudiante':
+                    programa_id = request.form['programa']
+                    # Process student field
+                elif role == 'Evaluador':
+                    facultad_id = request.form['facultad']
+                    # Process Evaluador field
+
+                hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
                 cursor.execute("INSERT INTO Users (username, password, role) VALUES (%s, %s, %s)",
                             (username, hashed_password, role))
                 user_id = cursor.lastrowid  # Get the auto-generated user ID
                 
                 # Insert user data into the appropriate table based on role
                 if role == 'Estudiante':
-                    cursor.execute("INSERT INTO Estudiantes (user_id, nombre, dni, email, programa) VALUES (%s, %s, %s, %s, %s)",
-                                (user_id, name, dni, email, programa))
+                    cursor.execute("INSERT INTO Estudiantes (user_id, nombre, dni, email, programa_id) VALUES (%s, %s, %s, %s, %s)",
+                                (user_id, name, dni, email, programa_id))
                 elif role == 'Evaluador':
-                    cursor.execute("INSERT INTO Evaluadores (user_id, nombre, dni, email, especialidad) VALUES (%s, %s, %s, %s, %s)",
-                                (user_id, name, dni, email, especialidad))
-                
+                    cursor.execute("INSERT INTO Evaluadores (user_id, nombre, dni, email, facultad_id) VALUES (%s, %s, %s, %s, %s)",
+                                (user_id, name, dni, email, facultad_id))
                 connection.commit()
                 flash('¡Registro exitoso! Por favor inicie sesión.', 'success')
                 return redirect(url_for('login'))
-            except mysql.connector.Error as err:
-                flash(f'Error: {err}', 'danger')
-            finally:
-                cursor.close()
-                connection.close()
-    
-    return render_template('registro.html')
+                
+    except mysql.connector.Error as err:
+        flash(f'Error: {err}', 'danger')
+    finally:
+        cursor.close()
+        connection.close()
+
+    return render_template('registro.html', programas=programas, facultades=facultades)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -146,7 +158,9 @@ def profile():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     user = None
-    details = None
+    details = []
+    programas = []
+    facultades = []
 
     try:
         if request.method == 'POST':
@@ -155,13 +169,13 @@ def profile():
             email = request.form['email']
 
             if session['role'] == 'Estudiante':
-                programa = request.form['programa']
-                cursor.execute("UPDATE Estudiantes SET nombre=%s, dni=%s, email=%s, programa=%s WHERE user_id=%s",
-                               (nombre, dni, email, programa, session['user_id']))
+                programa_id = request.form['programa']
+                cursor.execute("UPDATE Estudiantes SET nombre=%s, dni=%s, email=%s, programa_id=%s WHERE user_id=%s",
+                               (nombre, dni, email, programa_id, session['user_id']))
             elif session['role'] == 'Evaluador':
-                especialidad = request.form['especialidad']
-                cursor.execute("UPDATE Evaluador SET nombre=%s, dni=%s, email=%s, especialidad=%s WHERE user_id=%s",
-                               (nombre, dni, email, especialidad, session['user_id']))
+                facultad_id = request.form['facultad']
+                cursor.execute("UPDATE Evaluadores SET nombre=%s, dni=%s, email=%s, facultad_id=%s WHERE user_id=%s",
+                               (nombre, dni, email, facultad_id, session['user_id']))
 
             connection.commit()
             flash('Profile updated successfully!', 'success')
@@ -170,18 +184,22 @@ def profile():
         user = cursor.fetchone()
 
         if user['role'] == 'Estudiante':
-            cursor.execute("SELECT * FROM Estudiantes WHERE user_id = %s", (session['user_id'],))
+            cursor.execute("SELECT e.nombre, e.dni, e.email, p.programa FROM Estudiantes e JOIN Programas p ON e.programa_id = p.id WHERE user_id = %s", (session['user_id'],))
             details = cursor.fetchone()
+            cursor.execute("SELECT * FROM Programas")
+            programas = cursor.fetchall()
         elif user['role'] == 'Evaluador':
-            cursor.execute("SELECT * FROM Evaluador WHERE user_id = %s", (session['user_id'],))
+            cursor.execute("SELECT e.nombre, e.dni, e.email, f.facultad FROM Evaluadores e JOIN Facultades f ON e.facultad_id = f.id WHERE user_id = %s", (session['user_id'],))
             details = cursor.fetchone()
+            cursor.execute("SELECT * from Facultades")
+            facultades = cursor.fetchall()
     except mysql.connector.Error as err:
         flash(f'Error: {err}', 'danger')
     finally:
         cursor.close()
         connection.close()
 
-    return render_template('profile.html', user=user, details=details)
+    return render_template('profile.html', user=user, details=details, programas=programas, facultades=facultades)
 
 @app.route('/logout')
 def logout():
@@ -273,9 +291,9 @@ def consultar_proyecto():
     proyectos = []
     try:
         if session['role'] == 'Estudiante':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id WHERE u.id = %s", (session['user_id'],))
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id WHERE u.id = %s", (session['user_id'],))
         elif session['role'] == 'Evaluador':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id")
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id")
         proyectos = cursor.fetchall()
     except mysql.connector.Error as err:
         flash(f'Error: {err}', 'danger')
@@ -286,7 +304,7 @@ def consultar_proyecto():
     # Render the HTML template
     return render_template('consultar-proyecto.html', proyectos=proyectos)
 
-@app.route('/ver-propuestas')
+@app.route('/ver-propuestas', methods=['GET'])
 @login_required
 @role_required('Evaluador', 'Estudiante')
 def ver_propuestas():
@@ -295,9 +313,9 @@ def ver_propuestas():
     propuestas = []
     try:
         if session['role'] == 'Estudiante':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id WHERE u.id = %s", (session['user_id'],))
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id WHERE u.id = %s", (session['user_id'],))
         elif session['role'] == 'Evaluador':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id")
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id")
         propuestas = cursor.fetchall()
     except mysql.connector.Error as err:
         flash(f'Error: {err}', 'danger')

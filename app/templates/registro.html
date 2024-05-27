@@ -12,6 +12,10 @@
             document.getElementById("evaluador_fields").style.display = "block";
         }
     }
+    // Run the toggleFields function on page load to set the initial state
+    window.onload = function() {
+        toggleFields();
+    };
 </script>
 
 <h1 class="mt-4">Registro de Usuario</h1>
@@ -46,13 +50,21 @@
     <div id="estudiante_fields" style="display: none;">
         <div class="mb-3">
             <label for="programa" class="form-label">Carrera/Programa</label>
-            <input type="text" class="form-control" id="programa" name="programa">
+            <select class="form-control" id="programa" name="programa">
+                {% for programa in programas %}
+                    <option value="{{ programa[0] }}">{{ programa[1] }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
     <div id="evaluador_fields" style="display: none;">
         <div class="mb-3">
-            <label for="especialidad" class="form-label">Especialidad</label>
-            <input type="text" class="form-control" id="especialidad" name="especialidad">
+            <label for="facultad" class="form-label">Facultad</label>
+            <select class="form-control" id="facultad" name="facultad">
+                {% for facultad in facultades %}
+                    <option value="{{ facultad[0] }}">{{ facultad[1] }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
     <button type="submit" class="btn btn-primary">Registrar</button>
