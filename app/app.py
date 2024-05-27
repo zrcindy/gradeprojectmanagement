@@ -6,7 +6,7 @@ import mysql.connector
 import os
 
 # Restricting file extensions
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+ALLOWED_EXTENSIONS = {'pdf'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -38,7 +38,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'username' not in session:
-            flash('Please log in to access this page.', 'danger')
+            flash('Por favor haga log in para acceder esta página.', 'danger')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -48,10 +48,10 @@ def role_required(*roles):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'username' not in session:
-                flash('Please log in to access this page.', 'danger')
+                flash('Por favor haga log in para acceder esta página.', 'danger')
                 return redirect(url_for('login'))
             if session.get('role') not in roles:
-                flash('You do not have permission to access this page.', 'danger')
+                flash('No tienes permiso para acceder esta página.', 'danger')
                 return redirect(url_for('home'))
             return f(*args, **kwargs)
         return decorated_function
@@ -74,11 +74,11 @@ def register():
         role = request.form['role']
 
         if role not in ['Estudiante', 'Evaluador']:
-            flash('Invalid role selected.', 'danger')
+            flash('Rol seleccionado Inválido', 'danger')
             return redirect(url_for('register'))
         
         if not username or not password or not role:
-            flash('All fields are required!', 'danger')
+            flash('Todos los campos wson requeridos!', 'danger')
         else:
             if role == 'Estudiante':
                 programa = request.form['programa']
@@ -104,7 +104,7 @@ def register():
                                 (user_id, name, dni, email, especialidad))
                 
                 connection.commit()
-                flash('Registration successful! Please login.', 'success')
+                flash('Registro exitoso! Por favor haga login.', 'success')
                 return redirect(url_for('login'))
             except mysql.connector.Error as err:
                 flash(f'Error: {err}', 'danger')
@@ -131,17 +131,17 @@ def login():
             session['user_id'] = user[0]
             session['username'] = user[1]
             session['role'] = user[3]
-            flash('Login successful!', 'success')
+            flash('Login satisfactorio!', 'success')
             return redirect(url_for('home'))
         else:
-            flash('Invalid username or password!', 'danger')
+            flash('Nombre de usuario o contraseña inválidos!', 'danger')
     
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'success')
+    flash('Logout exisoto.', 'success')
     return redirect(url_for('home'))
 
 @app.route('/ingresar-propuesta', methods=['GET', 'POST'])
@@ -154,7 +154,7 @@ def ingresar_propuesta():
             return redirect(request.url)
         file = request.files['propuesta']
         if file.filename == '':
-            flash('No selected file', 'danger')
+            flash('No ha selleccionado un archivo', 'danger')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -167,13 +167,15 @@ def ingresar_propuesta():
                 cursor.execute("INSERT INTO Propuestas (user_id, file_path) VALUES (%s, %s)",
                                (session['user_id'], file_path))
                 connection.commit()
-                flash('Propuesta uploaded successfully!', 'success')
+                flash('Propuesta cargada satisfactoriamente!', 'success')
             except mysql.connector.Error as err:
                 flash(f'Error: {err}', 'danger')
             finally:
                 cursor.close()
                 connection.close()
             return redirect(url_for('ver_propuestas'))
+        else:
+            flash('No pudo cargarse la Propuesta, asegúrese de subir un archivo con extensión .pdf', 'danger')
 
     # Render the HTML template
     return render_template('ingresar-propuesta.html')      
