@@ -22,7 +22,7 @@
             <td>{{ propuesta[4] }}</td>
             <td>{{ propuesta[5] }}</td>
             <td>{{ propuesta[1].split('/')[-1] }}</td>
-            <td><a href="{{ url_for('uploaded_file', filename=propuesta[1].split('/')[-1]) }}">Download</a></td>
+            <td><a href="{{ url_for('uploaded_purpose', filename=propuesta[1].split('/')[-1]) }}">Download</a></td>
         </tr>
         {% endfor %}
     </tbody>

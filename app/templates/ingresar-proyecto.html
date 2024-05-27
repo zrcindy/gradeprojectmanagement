@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="jumbotron">
-    <h1 class="display-4">Welcome to FlaskApp!</h1>
-    <p class="lead">This is a simple Flask web application with a responsive design.</p>
-    <hr class="my-4">
-    <p>Use the navigation bar to explore different pages.</p>
-</div>
+<h1 class="mt-4">Ingresar Proyecto</h1>
+<form method="POST" enctype="multipart/form-data" action="/ingresar-proyecto">
+    <div class="mb-3">
+        <label for="proyecto" class="form-label">Ingrese un documento PDF con su proyecto de trabajo de grado</label>
+        <input type="file" class="form-control" id="proyecto" name="proyecto" accept=".pdf" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar documento</button>
+</form>
 {% endblock %}

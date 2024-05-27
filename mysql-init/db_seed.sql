@@ -35,3 +35,10 @@ CREATE TABLE Propuestas (
     file_path VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES Users(id)
 );
+
+CREATE TABLE Proyectos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    file_path VARCHAR(255),
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+);

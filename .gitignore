@@ -1,6 +1,7 @@
 lib/
 lib64/
 bin/
+venv/
 include/
 pip-selfcheck.json
 pyenv.cfg

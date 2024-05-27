@@ -1,10 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="jumbotron">
-    <h1 class="display-4">Welcome to FlaskApp!</h1>
-    <p class="lead">This is a simple Flask web application with a responsive design.</p>
-    <hr class="my-4">
-    <p>Use the navigation bar to explore different pages.</p>
-</div>
+<h1 class="mt-4">Ver Proyectos</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Email</th>
+            <th scope="col">Identificación</th>
+            <th scope="col">Archivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for proyecto in proyectos %}
+        <tr>
+            <th scope="row">{{ proyecto[0] }}</th>
+            <td>{{ proyecto[2] }}</td>
+            <td>{{ proyecto[3] }}</td>
+            <td>{{ proyecto[4] }}</td>
+            <td>{{ proyecto[5] }}</td>
+            <td>{{ proyecto[1].split('/')[-1] }}</td>
+            <td><a href="{{ url_for('uploaded_project', filename=proyecto[1].split('/')[-1]) }}">Download</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

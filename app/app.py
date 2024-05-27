@@ -13,18 +13,20 @@ def allowed_file(filename):
 # Create a Flask application instance
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for flashing messages
-app.config['UPLOAD_FOLDER'] = '/app/uploads/'
+app.config['UPLOAD_FOLDER_PURPOSES'] = '/app/uploads/purposes'
+app.config['UPLOAD_FOLDER_PROJECTS'] = '/app/uploads/projects'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Maximum file size: 16MB
 
-# Ensure the upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Ensure the upload folders exists
+os.makedirs(app.config['UPLOAD_FOLDER_PURPOSES'], exist_ok=True)
+os.makedirs(app.config['UPLOAD_FOLDER_PROJECTS'], exist_ok=True)
 
 # MySQL Database configuration
 db_config = {
     'user': 'userdba',
     'password': 'rut4lt3rn4',
-#    'host': 'localhost',
-    'host': 'db',
+    'host': 'localhost',
+#    'host': 'db',
     'database': 'database_production',
     'raise_on_warnings': True
 }
@@ -85,7 +87,7 @@ def register():
                 # Process student field
             elif role == 'Evaluador':
                 especialidad = request.form['especialidad']
-                # Process jurado field
+                # Process Evaluador field
 
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
             connection = get_db_connection()
@@ -138,11 +140,54 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/profile', methods=['GET', 'POST'])
+@role_required('Estudiante', 'Evaluador')
+def profile():
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    user = None
+    details = None
+
+    try:
+        if request.method == 'POST':
+            nombre = request.form['nombre']
+            dni = request.form['dni']
+            email = request.form['email']
+
+            if session['role'] == 'Estudiante':
+                programa = request.form['programa']
+                cursor.execute("UPDATE Estudiantes SET nombre=%s, dni=%s, email=%s, programa=%s WHERE user_id=%s",
+                               (nombre, dni, email, programa, session['user_id']))
+            elif session['role'] == 'Evaluador':
+                especialidad = request.form['especialidad']
+                cursor.execute("UPDATE Evaluador SET nombre=%s, dni=%s, email=%s, especialidad=%s WHERE user_id=%s",
+                               (nombre, dni, email, especialidad, session['user_id']))
+
+            connection.commit()
+            flash('Profile updated successfully!', 'success')
+        
+        cursor.execute("SELECT * FROM Users WHERE id = %s", (session['user_id'],))
+        user = cursor.fetchone()
+
+        if user['role'] == 'Estudiante':
+            cursor.execute("SELECT * FROM Estudiantes WHERE user_id = %s", (session['user_id'],))
+            details = cursor.fetchone()
+        elif user['role'] == 'Evaluador':
+            cursor.execute("SELECT * FROM Evaluador WHERE user_id = %s", (session['user_id'],))
+            details = cursor.fetchone()
+    except mysql.connector.Error as err:
+        flash(f'Error: {err}', 'danger')
+    finally:
+        cursor.close()
+        connection.close()
+
+    return render_template('profile.html', user=user, details=details)
+
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Sesión finalizada.', 'success')
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 @app.route('/ingresar-propuesta', methods=['GET', 'POST'])
 @login_required
@@ -158,7 +203,7 @@ def ingresar_propuesta():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER_PURPOSES'], filename)
             file.save(file_path)
 
             connection = get_db_connection()
@@ -180,26 +225,66 @@ def ingresar_propuesta():
     # Render the HTML template
     return render_template('ingresar-propuesta.html')      
 
-@app.route('/ingresar-proyecto')
+@app.route('/ingresar-proyecto', methods=['GET', 'POST'])
 @login_required
 @role_required('Estudiante')
 def ingresar_proyecto():
+    if request.method == 'POST':
+        if 'proyecto' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+        file = request.files['proyecto']
+        if file.filename == '':
+            flash('No ha seleccionado un archivo', 'danger')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER_PROJECTS'], filename)
+            file.save(file_path)
+
+            connection = get_db_connection()
+            cursor = connection.cursor()
+            try:
+                cursor.execute("INSERT INTO Proyectos (user_id, file_path) VALUES (%s, %s)",
+                               (session['user_id'], file_path))
+                connection.commit()
+                flash('¡Proyecto cargado satisfactoriamente!', 'success')
+            except mysql.connector.Error as err:
+                flash(f'Error: {err}', 'danger')
+            finally:
+                cursor.close()
+                connection.close()
+            return redirect(url_for('consultar_proyecto'))
+        else:
+            flash('No pudo cargarse el Proyecto, asegúrese de subir un archivo con extensión .pdf', 'danger')
+
+
+
+
     # Render the HTML template
     return render_template('ingresar-proyecto.html')
-
-@app.route('/ingresar-informe-final')
-@login_required
-@role_required('Estudiante')
-def ingresar_informe_final():
-    # Render the HTML template
-    return render_template('ingresar-informe-final.html')
 
 @app.route('/consultar-proyecto')
 @login_required
 @role_required('Estudiante', 'Evaluador')
 def consultar_proyecto():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    proyectos = []
+    try:
+        if session['role'] == 'Estudiante':
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id WHERE u.id = %s", (session['user_id'],))
+        elif session['role'] == 'Evaluador':
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Proyectos p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id")
+        proyectos = cursor.fetchall()
+    except mysql.connector.Error as err:
+        flash(f'Error: {err}', 'danger')
+        proyectos = []
+    finally:
+        cursor.close()
+        connection.close()
     # Render the HTML template
-    return render_template('consultar-proyecto.html')
+    return render_template('consultar-proyecto.html', proyectos=proyectos)
 
 @app.route('/ver-propuestas')
 @login_required
@@ -207,8 +292,12 @@ def consultar_proyecto():
 def ver_propuestas():
     connection = get_db_connection()
     cursor = connection.cursor()
+    propuestas = []
     try:
-        cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id")
+        if session['role'] == 'Estudiante':
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id WHERE u.id = %s", (session['user_id'],))
+        elif session['role'] == 'Evaluador':
+            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, e.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id")
         propuestas = cursor.fetchall()
     except mysql.connector.Error as err:
         flash(f'Error: {err}', 'danger')
@@ -219,9 +308,13 @@ def ver_propuestas():
 
     return render_template('ver-propuestas.html', propuestas=propuestas)
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/uploads/purposes/<filename>')
+def uploaded_purpose(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER_PURPOSES'], filename)
+
+@app.route('/uploads/projects/<filename>')
+def uploaded_project(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER_PROJECTS'], filename)
 
 # Run the application if the script is executed directly
 if __name__ == '__main__':
