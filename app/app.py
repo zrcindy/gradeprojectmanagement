@@ -154,7 +154,7 @@ def ingresar_propuesta():
             return redirect(request.url)
         file = request.files['propuesta']
         if file.filename == '':
-            flash('No ha selleccionado un archivo', 'danger')
+            flash('No ha seleccionado un archivo', 'danger')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
