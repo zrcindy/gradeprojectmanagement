@@ -6,14 +6,22 @@ Sistema de software para la gestión de trabajos de grado en la Fundación Unive
 
 ## Tecnologías utilizadas
 
-Lenguaje de programación: Python,
+Lenguaje de programación: Python 3.9,
 Base de datos: MySQL,
 Entorno de desarrollo: Visual Studio Code,
 Herramienta de empaquetado: Docker.
+Framwework: Flask con HTLM, CSS.
+
+## Requisitos previos
+
+Tener Docker instalado en su sistema, PlugIn de Docker Compose y Git.
 
 ## Instalación
 
-Instalación de Docker y el PlugIn de Docker Compose para correr el proyecto.
+1. Clonar el repositorio del proyecto: git clone https://github.com/tu_usuario/gradeprojectmanagement.git
+2. Acceder al directorio del proyecto: cd gradeprojectmanagement
+3. Iniciar el proyecto con Docker Compose: docker-compose up -d
+4. Acceder a la aplicación web: Abra su navegador web y navegue a la dirección http://localhost:5000 
 
 ## Uso
 
