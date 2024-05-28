@@ -25,12 +25,8 @@ Tener Docker instalado en su sistema, PlugIn de Docker Compose y Git.
 
 ## Uso
 
-Ejemplos de cómo usar el proyecto.
+1. Registro de usuario con rol estudiantes: Los estudiantes pueden registrar un nombre de usuario, una clave, nombre completo, su identificación, correo electrónico y seleccionar su carrera y/o programa de estudio.
+2. Registro de usuarios evaluadores: Los evaluadores pueden registrar un nombre de usuario, una clave, nombre completo, su identificación, correo electrónico y seleccionar la facultad a la que pertenecen.
+3. El usuario con rol estudiante al momento de iniciar sesión en el portal web podrá enviar una propuesta de grado, consultar el estado de la propuesta enviada, enviar proyecto de trabajo de grado, consultar estado de su proyecto de trabajo de grado, actualizar su perfil y finalizar la sesión.
+4. El usuario con rol evaluador al momento de iniciar sesión en el portal web podrá revisar las propuestas de grado de acuerdo a los programas de estudio que pertenecen a su facultad, nombre del estudiante, correo, identificación, nombre del programa, también podrá descargar archivo de la propuesta enviada. Consulta de proyectos de trabajo de grado de acuerdo a los programas de estudio que pertenecen a su facultad, nombre del estudiante, correo, identificación, nombre del programa, también podrá descargar archivo del proyecto de trabajo de grado enviado actualizar su perfil y finalizar la sesión.
 
-## Contribución
-
-Instrucciones sobre cómo contribuir al proyecto.
-
-## Licencia
-
-La licencia bajo la cual se distribuye el proyecto.
