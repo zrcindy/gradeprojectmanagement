@@ -9,8 +9,8 @@ Sistema de software para la gestión de trabajos de grado en la Fundación Unive
 Lenguaje de programación: Python 3.9-alpine,
 Base de datos: MySQL,
 Entorno de desarrollo: Visual Studio Code,
-Herramienta de empaquetado: Docker.
-Framwework: Flask con HTLM, CSS.
+Herramienta de empaquetado: Docker,
+Framwework: Flex CSS, Flask, Bootstrap.
 
 ## Requisitos previos
 
