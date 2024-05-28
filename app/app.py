@@ -212,6 +212,8 @@ def logout():
 @role_required('Estudiante')
 def ingresar_propuesta():
     if request.method == 'POST':
+        nombre_propuesta = request.form['nombre_propuesta']
+        descripcion_propuesta = request.form['descripcion_propuesta']
         if 'propuesta' not in request.files:
             flash('No file part', 'danger')
             return redirect(request.url)
@@ -227,8 +229,8 @@ def ingresar_propuesta():
             connection = get_db_connection()
             cursor = connection.cursor()
             try:
-                cursor.execute("INSERT INTO Propuestas (user_id, file_path) VALUES (%s, %s)",
-                               (session['user_id'], file_path))
+                cursor.execute("INSERT INTO Propuestas (user_id, file_path, nombre, descripcion, evaluador_id) VALUES (%s, %s, %s, %s, %s)",
+                               (session['user_id'], file_path, nombre_propuesta, descripcion_propuesta, 1))
                 connection.commit()
                 flash('¡Propuesta cargada satisfactoriamente!', 'success')
             except mysql.connector.Error as err:
@@ -313,9 +315,9 @@ def ver_propuestas():
     propuestas = []
     try:
         if session['role'] == 'Estudiante':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id WHERE u.id = %s", (session['user_id'],))
+            cursor.execute("SELECT p.id, p.file_path, p.nombre, p.descripcion, p.calificacion, p.feedback, e.nombre, g.programa, ev.nombre FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id JOIN Evaluadores ev ON p.evaluador_id = ev.id WHERE u.id = %s", (session['user_id'],))
         elif session['role'] == 'Evaluador':
-            cursor.execute("SELECT p.id, p.file_path, u.username, e.nombre, e.email, e.dni, g.programa FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id")
+            cursor.execute("SELECT p.id, p.file_path, p.nombre, p.descripcion, p.calificacion, p.feedback, e.nombre, g.programa, ev.nombre FROM Propuestas p JOIN Users u ON p.user_id = u.id JOIN Estudiantes e ON u.id = e.user_id JOIN Programas g ON g.id = e.programa_id JOIN Evaluadores ev ON p.evaluador_id = ev.id")
         propuestas = cursor.fetchall()
     except mysql.connector.Error as err:
         flash(f'Error: {err}', 'danger')
@@ -325,6 +327,38 @@ def ver_propuestas():
         connection.close()
 
     return render_template('ver-propuestas.html', propuestas=propuestas)
+
+@app.route('/evaluar-propuesta/<int:propuesta_id>', methods=['POST'])
+@role_required('Evaluador')
+def evaluar_propuesta(propuesta_id):
+    calificacion = request.form['calificacion']
+    comentario = request.form['comentario']
+    evaluador_id = get_evaluador_id(session['user_id'])
+    print(evaluador_id)
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    try:
+        cursor.execute("UPDATE Propuestas SET calificacion = %s, feedback = %s, evaluador_id = %s WHERE id = %s", (calificacion, comentario, evaluador_id, propuesta_id))
+        connection.commit()
+        flash('Evaluación enviada exitosamente.', 'success')
+    except mysql.connector.Error as err:
+        flash(f'Error: {err}', 'danger')
+    finally:
+        cursor.close()
+        connection.close()
+    
+    return redirect(url_for('ver_propuestas'))
+
+def get_evaluador_id(user_id):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT id FROM Evaluadores WHERE user_id = %s", (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return result['id'] if result else None
 
 @app.route('/uploads/purposes/<filename>')
 def uploaded_purpose(filename):

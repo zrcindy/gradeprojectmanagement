@@ -47,19 +47,34 @@ CREATE TABLE Propuestas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     file_path VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES Users(id)
+    nombre VARCHAR(255),
+    descripcion VARCHAR(1000),
+    calificacion VARCHAR(2),
+    feedback VARCHAR(1000),
+    evaluador_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (evaluador_id) REFERENCES Evaluadores(id)
 );
 
 CREATE TABLE Proyectos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     file_path VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES Users(id)
+    nombre VARCHAR(255),
+    descripcion VARCHAR(1000),
+    calificacion VARCHAR(2),
+    feedback VARCHAR(1000),
+    evaluador_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (evaluador_id) REFERENCES Evaluadores(id)
 );
 
-INSERT INTO Facultades (facultad) VALUES ('Ingeniería y Ciencias ambientales');
-INSERT INTO Facultades (facultad) VALUES ('Ciencias Económicas');
+INSERT INTO Facultades (facultad) VALUES ('Ingenieria y Ciencias ambientales');
+INSERT INTO Facultades (facultad) VALUES ('Ciencias Economicas');
 
-INSERT INTO Programas (programa, facultad_id) VALUES ('Ingeniería Informática', 1);
-INSERT INTO Programas (programa, facultad_id) VALUES ('Contaduría Pública', 2);
-INSERT INTO Programas (programa, facultad_id) VALUES ('Administración de Empresas', 2);
+INSERT INTO Programas (programa, facultad_id) VALUES ('Ingenieria Informatica', 1);
+INSERT INTO Programas (programa, facultad_id) VALUES ('Contaduria Publica', 2);
+INSERT INTO Programas (programa, facultad_id) VALUES ('Administracion de Empresas', 2);
+
+INSERT INTO Users (username, password, role) VALUES ('admin', 'admin', 'Evaluador');
+INSERT INTO Evaluadores (user_id, nombre, dni, email, facultad_id) VALUES (1, 'Admin', '11111', 'admin@localhost.com', 1);

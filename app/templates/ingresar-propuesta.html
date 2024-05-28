@@ -4,6 +4,14 @@
 <h1 class="mt-4">Ingresar Propuesta</h1>
 <form method="POST" enctype="multipart/form-data" action="/ingresar-propuesta">
     <div class="mb-3">
+        <label for="nombre_propuesta" class="form-label">Ingrese el nombre de la propuesta</label>
+        <input type="text" class="form-control" id="nombre_propuesta" name="nombre_propuesta" required>
+    </div>
+    <div class="mb-3">
+        <label for="descripcion_propuesta" class="form-label">Ingrese descripción de la propuesta</label>
+        <input type="text" class="form-control" id="descripcion_propuesta" name="descripcion_propuesta" required>
+    </div>
+    <div class="mb-3">
         <label for="propuesta" class="form-label">Ingrese un documento PDF con su propuesta de trabajo de grado</label>
         <input type="file" class="form-control" id="propuesta" name="propuesta" accept=".pdf" required>
     </div>
