@@ -6,7 +6,7 @@ Sistema de software para la gestión de trabajos de grado en la Fundación Unive
 
 ## Tecnologías utilizadas
 
-Lenguaje de programación: Python 3.9,
+Lenguaje de programación: Python 3.9-alpine,
 Base de datos: MySQL,
 Entorno de desarrollo: Visual Studio Code,
 Herramienta de empaquetado: Docker.
