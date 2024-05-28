@@ -1,32 +1,48 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mt-4">Ver Proyectos</h1>
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Usuario</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Email</th>
-            <th scope="col">Identificación</th>
-            <th scope="col">Programa</th>
-            <th scope="col">Archivo</th>
-        </tr>
-    </thead>
-    <tbody>
+<h1 class="mt-4">Propuestas</h1>
+
+{% if proyectos %}
+    <ul class="list-group">
         {% for proyecto in proyectos %}
-        <tr>
-            <th scope="row">{{ proyecto[0] }}</th>
-            <td>{{ proyecto[2] }}</td>
-            <td>{{ proyecto[3] }}</td>
-            <td>{{ proyecto[4] }}</td>
-            <td>{{ proyecto[5] }}</td>
-            <td>{{ proyecto[6] }}</td>
-            <td>{{ proyecto[1].split('/')[-1] }}</td>
-            <td><a href="{{ url_for('uploaded_project', filename=proyecto[1].split('/')[-1]) }}">Download</a></td>
-        </tr>
+            <li class="list-group-item">
+                <h5>{{ proyecto[2] }} - {{ proyecto[6] }} - {{ proyecto[7] }}</h5>
+                <p>{{ proyecto[3] }}</p>
+                <a href="{{ url_for('uploaded_project', filename=proyecto[1].split('/')[-1]) }}" class="btn btn-primary">Descargar</a>
+
+                {% if session['role'] == 'Evaluador' %}
+                <form method="POST" action="{{ url_for('evaluar_proyecto', proyecto_id=proyecto[0]) }}">
+                    <div class="mb-3">
+                        <label for="calificacion" class="form-label">Calificación</label>
+                        <input type="number" class="form-control" id="calificacion" name="calificacion" min="1" max="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comentario" class="form-label">Comentario</label>
+                        <textarea class="form-control" id="comentario" name="comentario" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Enviar Evaluación</button>
+                </form>
+                {% endif %}
+
+                <hr>
+                <h6>Comentarios de Evaluadores</h6>
+                <div class="mb-3">
+                    <strong>Evaluador {{ proyecto[8] }}:</strong>
+                    <p>Calificación: {{ proyecto[4] }}</p>
+                    <p>Comentario: {{ proyecto[5] }}</p>
+                </div>
+                {% for evaluacion in proyecto.evaluaciones %}
+                    <div class="mb-3">
+                        <strong>Evaluador {{ evaluacion.evaluador_id }}:</strong>
+                        <p>Calificación: {{ evaluacion.calificacion }}</p>
+                        <p>Comentario: {{ evaluacion.comentario }}</p>
+                    </div>
+                {% endfor %}
+            </li>
         {% endfor %}
-    </tbody>
-</table>
+    </ul>
+{% else %}
+    <p>No hay proyectos disponibles.</p>
+{% endif %}
 {% endblock %}

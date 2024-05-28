@@ -4,6 +4,14 @@
 <h1 class="mt-4">Ingresar Proyecto</h1>
 <form method="POST" enctype="multipart/form-data" action="/ingresar-proyecto">
     <div class="mb-3">
+        <label for="nombre_proyecto" class="form-label">Ingrese el nombre de la proyecto</label>
+        <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" required>
+    </div>
+    <div class="mb-3">
+        <label for="descripcion_proyecto" class="form-label">Ingrese descripción de la proyecto</label>
+        <input type="text" class="form-control" id="descripcion_proyecto" name="descripcion_proyecto" required>
+    </div>
+    <div class="mb-3">
         <label for="proyecto" class="form-label">Ingrese un documento PDF con su proyecto de trabajo de grado</label>
         <input type="file" class="form-control" id="proyecto" name="proyecto" accept=".pdf" required>
     </div>
